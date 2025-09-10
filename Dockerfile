@@ -17,7 +17,7 @@ ARG TARGETOS
 ARG TARGETARCH
 WORKDIR /src
 
-# restore dependencies
+# restore all dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
