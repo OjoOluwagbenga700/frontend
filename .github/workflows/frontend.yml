@@ -153,12 +153,11 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
     - name: Update Helm values
       run: |
-        cd helm-repo/microservices-chart
+        cd microservices-chart
         yq eval ".services.${{ env.SERVICE_NAME }}.image.repository = \"${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}\"" -i values.yaml
         yq eval ".services.${{ env.SERVICE_NAME }}.image.tag = \"${{ github.sha }}\"" -i values.yaml
     - name: Commit and push changes
       run: |
-        cd helm-repo
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Actions"
         git add microservices-chart/values.yaml
