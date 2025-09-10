@@ -129,7 +129,6 @@ jobs:
       with:
         repository: ${{ vars.HELM_REPO }}
         token: ${{ secrets.HELM_REPO_TOKEN }}
-        path: helm-repo
         ref: feature/boutique-helm
     - name: Install yq
       run: |
