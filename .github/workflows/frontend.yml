@@ -119,58 +119,58 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-  #update-helm-values:
-    #runs-on: ubuntu-latest
-    #needs: package
-    #if: github.ref == 'refs/heads/main'
-    #steps:
-    #- name: Checkout helm repository
-      #uses: actions/checkout@v4
-      #with:
-        #repository: ${{ secrets.HELM_REPO }}
-        #token: ${{ secrets.HELM_REPO_TOKEN }}
-        #path: helm-repo
-        #ref: feature/boutique-helm
-    #- name: Install yq
-      #run: |
-        #sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-        #sudo chmod +x /usr/local/bin/yq
-    #- name: Configure AWS credentials
-      #uses: aws-actions/configure-aws-credentials@v4
-      #with:
-        #aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-        #aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        #aws-region: ${{ env.AWS_REGION }}
-    #- name: Login to Amazon ECR
-      #id: login-ecr
-      #uses: aws-actions/amazon-ecr-login@v2
-    #- name: Update Helm values
-      #run: |
-        #cd helm-repo/microservices-chart
-        #yq eval ".services.${{ env.SERVICE_NAME }}.image.repository = \"${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}\"" -i values.yaml
-        #yq eval ".services.${{ env.SERVICE_NAME }}.image.tag = \"${{ github.sha }}\"" -i values.yaml
-    #- name: Commit and push changes
-      #run: |
-        #cd helm-repo
-        #git config --global user.email "action@github.com"
-        #git config --global user.name "GitHub Actions"
-        #git add microservices-chart/values.yaml
-        #git commit -m "Update ${{ env.SERVICE_NAME }} image to ${{ github.sha }}"
-        #git push origin feature/boutique-helm
+  update-helm-values:
+    runs-on: ubuntu-latest
+    needs: package
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Checkout helm repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ vars.HELM_REPO }}
+        token: ${{ secrets.HELM_REPO_TOKEN }}
+        path: helm-repo
+        ref: feature/boutique-helm
+    - name: Install yq
+      run: |
+        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+        sudo chmod +x /usr/local/bin/yq
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+    - name: Update Helm values
+      run: |
+        cd helm-repo/microservices-chart
+        yq eval ".services.${{ env.SERVICE_NAME }}.image.repository = \"${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}\"" -i values.yaml
+        yq eval ".services.${{ env.SERVICE_NAME }}.image.tag = \"${{ github.sha }}\"" -i values.yaml
+    - name: Commit and push changes
+      run: |
+        cd helm-repo
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Actions"
+        git add microservices-chart/values.yaml
+        git commit -m "Update ${{ env.SERVICE_NAME }} image to ${{ github.sha }}"
+        git push origin feature/boutique-helm
 
-  #trigger-deploy:
-    #runs-on: ubuntu-latest
-    #needs: update-helm-values
-    #if: github.ref == 'refs/heads/main'
-    #steps:
-    #- name: Trigger deployment pipeline
-      #uses: actions/github-script@v7
-      #with:
-        #github-token: ${{ secrets.DEPLOY_TRIGGER_TOKEN }}
-        #script: |
-          #await github.rest.actions.createWorkflowDispatch({
-            #owner: 'seunayolu',
-            #repo: 'gitops-helm',
-            #workflow_id: 'deploy.yml',
-            #ref: 'feature/boutique-helm'
-          #});
+  trigger-deploy:
+    runs-on: ubuntu-latest
+    needs: update-helm-values
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Trigger deployment pipeline
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.DEPLOY_TRIGGER_TOKEN }}
+        script: |
+          await github.rest.actions.createWorkflowDispatch({
+            owner: 'OjoOluwagbenga700',
+            repo: 'helm-repo',
+            workflow_id: 'helm-deploy.yml',
+            ref: 'feature/boutique-helm'
+          });
