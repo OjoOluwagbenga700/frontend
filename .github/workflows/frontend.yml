@@ -1,4 +1,4 @@
-name: frontend_Pipeline
+name: frontend_cicd_pipeline
 
 on:
   pull_request:
@@ -17,6 +17,7 @@ env:
   ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
   APP_ID: ${{ secrets.APP_ID }}
   PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+  HELM_REPO: ${{ vars.HELM_REPO }}
 
 jobs:
   build:
@@ -135,7 +136,7 @@ jobs:
     - name: Checkout helm repository
       uses: actions/checkout@v4
       with:
-        repository: ${{ vars.HELM_REPO }}
+        repository: ${{ env.HELM_REPO }}
         token: ${{ steps.generate_token.outputs.token }}
         ref: feature/boutique-helm
     - name: Install yq
