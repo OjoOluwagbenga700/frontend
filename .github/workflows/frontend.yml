@@ -1,4 +1,4 @@
-name: frontend_cicd
+name: frontend_pipeline
 
 on:
   pull_request:
